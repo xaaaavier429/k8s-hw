@@ -5,12 +5,16 @@ step "Host info"
 hostnamectl | grep -E "Static hostname|Operating System|Kernel|Architecture"
 echo "Host-only iface: $HOSTIF  IP: $HOSTIP"
 
-step "Ubuntu 24.10 is EOL -> switch apt sources to old-releases"
-if ! curl -sfI http://ports.ubuntu.com/ubuntu-ports/dists/oracular/Release >/dev/null; then
-  sudo sed -i -E 's#https?://(ports\.ubuntu\.com/ubuntu-ports|[a-z.]*archive\.ubuntu\.com/ubuntu|security\.ubuntu\.com/ubuntu)/?#http://old-releases.ubuntu.com/ubuntu/#g' \
-    /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
+CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME")
+step "Check apt mirror for Ubuntu '$CODENAME' (EOL releases live on old-releases)"
+SRC=/etc/apt/sources.list.d/ubuntu.sources
+if curl -sfI "http://ports.ubuntu.com/ubuntu-ports/dists/$CODENAME/Release" >/dev/null; then
+  # supported release: make sure the official ports mirror is used
+  sudo sed -i -E 's#http://old-releases\.ubuntu\.com/ubuntu/?#http://ports.ubuntu.com/ubuntu-ports/#g' $SRC 2>/dev/null || true
+else
+  sudo sed -i -E 's#https?://(ports\.ubuntu\.com/ubuntu-ports|[a-z.]*archive\.ubuntu\.com/ubuntu|security\.ubuntu\.com/ubuntu)/?#http://old-releases.ubuntu.com/ubuntu/#g' $SRC 2>/dev/null || true
 fi
-grep -h "^URIs" /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null | sort -u
+grep -h "^URIs\|^Suites" $SRC 2>/dev/null | sort -u
 
 step "apt update and install basic tools"
 sudo apt-get update -q
