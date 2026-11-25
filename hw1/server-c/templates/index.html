@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head><meta charset="UTF-8"><title>C 電腦 - 整合平台</title>
+<style>body{font-family:sans-serif;max-width:760px;margin:24px auto;line-height:1.6}
+fieldset{margin:12px 0;border:1px solid #ccc;border-radius:8px}code{background:#eee;padding:1px 4px}
+.ok{color:green}.bad{color:#c00}</style></head>
+<body>
+<h1>C 電腦 - 整合平台</h1>
+<p>這個頁面由 Pod <code>{{ me }}</code>（節點 <code>{{ node }}</code>）提供。</p>
+<p>A 電腦：{% if a.error %}<span class="bad">{{ a.error }}</span>{% else %}<span class="ok">連線正常</span>
+  （Pod <code>{{ a.pod }}</code> @ <code>{{ a.node }}</code>）{% endif %}<br>
+B 電腦：{% if b.error %}<span class="bad">{{ b.error }}</span>{% else %}<span class="ok">連線正常</span>
+  （Pod <code>{{ b.pod }}</code> @ <code>{{ b.node }}</code>）{% endif %}</p>
+
+<fieldset><legend>A 電腦：四則運算</legend>
+<form action="/calc"><input name="a" value="12" size="6">
+<select name="op"><option value="add">+</option><option value="sub">−</option><option value="mul">×</option>
+<option value="div">÷</option><option value="pow">^</option></select>
+<input name="b" value="5" size="6"> <button>計算</button></form></fieldset>
+
+<fieldset><legend>A 電腦：質數判斷</legend>
+<form action="/prime"><input name="n" value="97" size="10"> <button>判斷</button></form></fieldset>
+
+<fieldset><legend>B 電腦：文字分析</legend>
+<form action="/text"><input name="s" value="Kubernetes runs containers and Kubernetes scales containers" size="50"> <button>分析</button></form></fieldset>
+
+<fieldset><legend>B 電腦：迴文判斷</legend>
+<form action="/palindrome"><input name="s" value="Was it a car or a cat I saw" size="40"> <button>判斷</button></form></fieldset>
+</body></html>

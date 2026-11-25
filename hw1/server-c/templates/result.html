@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head><meta charset="UTF-8"><title>{{ title }} - 結果</title>
+<style>body{font-family:sans-serif;max-width:760px;margin:24px auto}table{border-collapse:collapse}
+td,th{border:1px solid #ccc;padding:4px 10px;text-align:left}.bad{color:#c00}</style></head>
+<body>
+<h1>{{ title }}</h1>
+<p>由 C 電腦呼叫 <strong>{{ server }} 電腦</strong>，回傳結果如下：</p>
+{% if res.error %}<p class="bad">{{ res.error }}</p>{% else %}
+<table>{% for k, v in res.items() %}<tr><th>{{ k }}</th><td>{{ v }}</td></tr>{% endfor %}</table>{% endif %}
+<p><a href="/">← 回 C 電腦首頁</a></p>
+</body></html>

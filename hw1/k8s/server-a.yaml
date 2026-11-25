@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-a
+  labels: { app: server-a }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: server-a }
+  template:
+    metadata:
+      labels: { app: server-a }
+    spec:
+      containers:
+      - name: server-a
+        image: hw1-server-a:v1
+        imagePullPolicy: Never      # 使用各節點本機 build 好的 image
+        ports:
+        - containerPort: 5000
+        env:
+        - name: NODE_NAME           # Downward API：讓程式知道自己跑在哪個節點
+          valueFrom:
+            fieldRef: { fieldPath: spec.nodeName }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-a-service
+spec:
+  selector: { app: server-a }
+  type: ClusterIP                   # 叢集內部用，C 電腦以 DNS 名稱 server-a-service 呼叫
+  ports:
+  - port: 5000
+    targetPort: 5000

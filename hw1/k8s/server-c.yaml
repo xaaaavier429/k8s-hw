@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-c
+  labels: { app: server-c }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: server-c }
+  template:
+    metadata:
+      labels: { app: server-c }
+    spec:
+      containers:
+      - name: server-c
+        image: hw1-server-c:v1
+        imagePullPolicy: Never      # 使用各節點本機 build 好的 image
+        ports:
+        - containerPort: 5002
+        env:
+        - name: NODE_NAME           # Downward API：讓程式知道自己跑在哪個節點
+          valueFrom:
+            fieldRef: { fieldPath: spec.nodeName }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-c-service
+spec:
+  selector: { app: server-c }
+  type: NodePort                    # 對外開放：http://<節點IP>:30002
+  ports:
+  - port: 5002
+    targetPort: 5002
+    nodePort: 30002
