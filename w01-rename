@@ -1,13 +1,22 @@
 #!/bin/bash
-# 複製出來的 work 節點：改主機名稱、重新產生 machine-id（避免拿到跟 master 一樣的 DHCP IP）
+# 複製出來的 work 節點：改主機名稱、重新產生 machine-id、改 host-only 靜態 IP（避免跟 master 衝突）
 source "$(dirname "$0")/lib"
 NEW=${1:-work}
+NEWIP=${2:-192.168.56.101}
 step "Set hostname to $NEW"
 sudo hostnamectl set-hostname "$NEW"
 sudo sed -i -E "s/^(127\.0\.1\.1\s+).*/\1$NEW/" /etc/hosts
+hostnamectl | grep "Static hostname"
 step "Regenerate machine-id"
 sudo rm -f /etc/machine-id /var/lib/dbus/machine-id
 sudo systemd-machine-id-setup
-step "Rebooting"
-sleep 3
+step "Host-only IP: $HOSTIP -> $NEWIP (if it is static in netplan)"
+if sudo grep -l "$HOSTIP" /etc/netplan/*.yaml 2>/dev/null; then
+  sudo sed -i "s/$HOSTIP/$NEWIP/g" $(sudo grep -l "$HOSTIP" /etc/netplan/*.yaml)
+  sudo grep -h -A3 "addresses" /etc/netplan/*.yaml
+else
+  echo "host-only IP comes from DHCP; a new MAC + machine-id gives a new lease"
+fi
+step "Rebooting in 5 seconds"
+sleep 5
 sudo reboot
