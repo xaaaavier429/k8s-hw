@@ -8,4 +8,4 @@ for s in a b c; do
 done
 step "docker images"
 docker images | grep -E "REPOSITORY|hw1-server"
-echo -e "\e[1;32m[完成] h01-build on $(hostname)\e[0m"
+echo -e "\e[1;32m[DONE] h01-build on $(hostname)\e[0m"

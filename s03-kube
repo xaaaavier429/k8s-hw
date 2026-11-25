@@ -1,20 +1,20 @@
 #!/bin/bash
 # 步驟 3：安裝 kubeadm、kubelet、kubectl
 source "$(dirname "$0")/lib"
-step "加入 Kubernetes ($K8S_VERSION) 套件庫簽章金鑰與 apt 來源"
+step "Add Kubernetes ($K8S_VERSION) signing key and apt repository"
 curl -fsSL https://pkgs.k8s.io/core:/stable:/$K8S_VERSION/deb/Release.key \
   | sudo gpg --dearmor --yes -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$K8S_VERSION/deb/ /" \
   | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
-step "安裝 kubelet kubeadm kubectl 並固定版本"
+step "Install kubelet kubeadm kubectl and hold versions"
 sudo apt-get update -q
 sudo apt-get install -y -q kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 sudo systemctl enable kubelet
 
-step "驗證版本"
+step "Verify versions"
 kubeadm version -o short
 kubectl version --client
 kubelet --version
-echo -e "\e[1;32m[完成] s03-kube\e[0m"
+echo -e "\e[1;32m[DONE] s03-kube\e[0m"

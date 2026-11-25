@@ -2,9 +2,9 @@
 # 步驟 8：產生 join 指令，開一個暫時的 HTTP 服務讓 work 節點下載（10 分鐘後自動關閉）
 source "$(dirname "$0")/lib"
 MASTER_IP=$HOSTIP
-step "產生 kubeadm join 指令"
+step "Create kubeadm join command"
 mkdir -p /tmp/join
 echo "$(sudo kubeadm token create --print-join-command) --cri-socket unix:///var/run/cri-dockerd.sock" | tee /tmp/join/join
 cd /tmp/join
 timeout 600 python3 -m http.server 8888 >/dev/null 2>&1 &
-echo "已在 http://$MASTER_IP:8888/join 提供 join 指令（10 分鐘）"
+echo "Join command served at http://$MASTER_IP:8888/join (10 min)"

@@ -1,12 +1,12 @@
 #!/bin/bash
 # 步驟 12：用 YAML 部署作業一到 K8S
 source "$(dirname "$0")/lib"
-step "移除 control-plane taint，讓 Pod 也能排到 master（兩台節點一起分攤）"
+step "Remove control-plane taint so pods can run on master too"
 kubectl taint nodes master node-role.kubernetes.io/control-plane:NoSchedule- 2>/dev/null || true
 step "kubectl apply"
 kubectl apply -f hw1/k8s/
-step "等待 Deployment 就緒"
+step "Wait for deployments to be ready"
 kubectl rollout status deploy/server-a deploy/server-b deploy/server-c --timeout=180s
 kubectl get deploy,svc -o wide
 kubectl get pods -o wide
-echo -e "\e[1;32m[完成] h03-deploy\e[0m"
+echo -e "\e[1;32m[DONE] h03-deploy\e[0m"

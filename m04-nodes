@@ -4,5 +4,5 @@ source "$(dirname "$0")/lib"
 step "kubectl get nodes"
 kubectl wait --for=condition=Ready node --all --timeout=180s || true
 kubectl get nodes -o wide
-step "系統 Pods"
+step "System pods"
 kubectl get pods -A -o wide
