@@ -1,0 +1,19 @@
+#!/bin/bash
+# 排除 disk-pressure：把 LVM 未配置的空間加到根目錄，並清掉 apt 快取
+source "$(dirname "$0")/lib"
+step "Disk usage before"
+df -h /
+sudo vgs 2>/dev/null
+step "Extend root LV into all free space in the volume group"
+ROOTDEV=$(findmnt -n -o SOURCE /)
+echo "root device: $ROOTDEV"
+if sudo lvs "$ROOTDEV" >/dev/null 2>&1; then
+  sudo lvextend -r -l +100%FREE "$ROOTDEV" || true
+else
+  echo "root is not on LVM - skip"
+fi
+step "Clean apt cache and old journal logs"
+sudo apt-get clean
+sudo journalctl --vacuum-size=100M 2>/dev/null | tail -1
+step "Disk usage after"
+df -h /
