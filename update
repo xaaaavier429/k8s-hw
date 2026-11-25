@@ -1,0 +1,3 @@
+#!/bin/bash
+# 從 GitHub 拉最新版
+cd "$(dirname "$0")" && git pull

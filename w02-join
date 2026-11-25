@@ -1,0 +1,15 @@
+#!/bin/bash
+# 步驟 9：work 節點加入叢集
+source "$(dirname "$0")/lib"
+step "$(hostname) host-only IP = $HOSTIP"
+step "在 192.168.56.0/24 搜尋 master 提供的 join 服務 (port 8888)"
+rm -rf /tmp/scan; mkdir -p /tmp/scan
+for i in $(seq 2 254); do curl -fsS --connect-timeout 1 -o /tmp/scan/$i http://192.168.56.$i:8888/join 2>/dev/null & done; wait
+i=$(ls /tmp/scan | head -1); [ -n "$i" ] || { echo "找不到 master，請先在 master 執行 m03-joinserve"; exit 1; }
+MASTER_IP=192.168.56.$i; JOIN=$(cat /tmp/scan/$i)
+echo "找到 master：$MASTER_IP"
+source ./hosts-setup
+echo "$JOIN"
+step "kubeadm join"
+sudo $JOIN
+echo -e "\e[1;32m[完成] w02-join\e[0m"

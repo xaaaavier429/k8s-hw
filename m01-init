@@ -1,0 +1,19 @@
+#!/bin/bash
+# 步驟 6：在 master 初始化 Control-plane
+source "$(dirname "$0")/lib"
+MASTER_IP=$HOSTIP
+step "master host-only 介面 $HOSTIF，IP = $MASTER_IP"
+source ./hosts-setup
+step "kubeadm init"
+sudo kubeadm init \
+  --control-plane-endpoint=$MASTER_IP \
+  --apiserver-advertise-address=$MASTER_IP \
+  --node-name master \
+  --pod-network-cidr=$POD_CIDR \
+  --cri-socket unix:///var/run/cri-dockerd.sock
+step "設定 kubeconfig"
+mkdir -p $HOME/.kube
+sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl get nodes -o wide
+echo -e "\e[1;32m[完成] m01-init\e[0m"

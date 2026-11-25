@@ -1,0 +1,19 @@
+#!/bin/bash
+# 步驟 7：安裝 Helm 與 Flannel CNI
+source "$(dirname "$0")/lib"
+step "安裝 Helm"
+command -v helm >/dev/null || curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+helm version --short
+step "用 Helm 安裝 Flannel（指定走 host-only 網卡 $HOSTIF）"
+kubectl create ns kube-flannel --dry-run=client -o yaml | kubectl apply -f -
+kubectl label --overwrite ns kube-flannel pod-security.kubernetes.io/enforce=privileged
+helm repo add flannel https://flannel-io.github.io/flannel/ 2>/dev/null || true
+helm repo update flannel
+helm upgrade --install flannel flannel/flannel --namespace kube-flannel \
+  --set podCidr="$POD_CIDR" \
+  --set flannel.args="{--ip-masq,--kube-subnet-mgr,--iface=$HOSTIF}"
+step "等待 master 變成 Ready"
+kubectl wait --for=condition=Ready node/master --timeout=180s || true
+kubectl get pods -A -o wide
+kubectl get nodes -o wide
+echo -e "\e[1;32m[完成] m02-flannel\e[0m"

@@ -1,0 +1,27 @@
+#!/bin/bash
+# 步驟 4：安裝 cri-dockerd（讓 kubelet 透過 CRI 使用 Docker）
+# 官方 .deb 只有 amd64，Apple Silicon (arm64) 改用官方 arm64 執行檔 + systemd 設定檔
+source "$(dirname "$0")/lib"
+V=$CRI_DOCKERD_VERSION
+step "下載 cri-dockerd v$V (arm64)"
+cd /tmp
+curl -fsSLO https://github.com/Mirantis/cri-dockerd/releases/download/v$V/cri-dockerd-$V.arm64.tgz
+tar xzf cri-dockerd-$V.arm64.tgz
+sudo install -o root -g root -m 0755 cri-dockerd/cri-dockerd /usr/local/bin/cri-dockerd
+
+step "安裝 systemd 服務檔"
+BASE=https://raw.githubusercontent.com/Mirantis/cri-dockerd/v$V/packaging/systemd
+sudo curl -fsSL $BASE/cri-docker.service -o /etc/systemd/system/cri-docker.service
+sudo curl -fsSL $BASE/cri-docker.socket  -o /etc/systemd/system/cri-docker.socket
+sudo sed -i 's#/usr/bin/cri-dockerd#/usr/local/bin/cri-dockerd#' /etc/systemd/system/cri-docker.service
+
+step "systemctl 重新載入並啟動 cri-docker"
+sudo systemctl daemon-reload
+sudo systemctl enable --now cri-docker.socket
+sudo systemctl enable --now cri-docker.service
+
+step "驗證 cri-docker"
+cri-dockerd --version
+sudo systemctl --no-pager status cri-docker.service | head -5
+ls -l /var/run/cri-dockerd.sock
+echo -e "\e[1;32m[完成] s04-cridockerd\e[0m"

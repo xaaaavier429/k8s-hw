@@ -1,0 +1,11 @@
+#!/bin/bash
+# 步驟 10：在本節點建置作業一的三個 Docker image
+source "$(dirname "$0")/lib"
+for s in a b c; do
+  step "docker build hw1-server-$s:v1"
+  cat hw1/server-$s/Dockerfile
+  docker build -q -t hw1-server-$s:v1 hw1/server-$s
+done
+step "docker images"
+docker images | grep -E "REPOSITORY|hw1-server"
+echo -e "\e[1;32m[完成] h01-build on $(hostname)\e[0m"

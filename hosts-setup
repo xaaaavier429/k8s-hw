@@ -1,0 +1,5 @@
+# 由 m01 / w02 引用：寫入 /etc/hosts 並設定 kubelet 使用 host-only IP
+sudo sed -i '/# k8s-hw$/d' /etc/hosts
+echo "$MASTER_IP master # k8s-hw" | sudo tee -a /etc/hosts >/dev/null
+[ "$(hostname)" != master ] && echo "$HOSTIP $(hostname) # k8s-hw" | sudo tee -a /etc/hosts >/dev/null
+echo "KUBELET_EXTRA_ARGS=--node-ip=$HOSTIP" | sudo tee /etc/default/kubelet

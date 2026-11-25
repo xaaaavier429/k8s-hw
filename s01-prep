@@ -1,0 +1,41 @@
+#!/bin/bash
+# 步驟 1：VM 前置設定（套件來源、swap、核心模組、網路參數）
+source "$(dirname "$0")/lib"
+step "主機資訊"
+hostnamectl | grep -E "Static hostname|Operating System|Kernel|Architecture"
+echo "Host-only 介面: $HOSTIF  IP: $HOSTIP"
+
+step "Ubuntu 24.10 已停止支援 → 套件來源改用 old-releases"
+if ! curl -sfI http://ports.ubuntu.com/ubuntu-ports/dists/oracular/Release >/dev/null; then
+  sudo sed -i -E 's#https?://(ports\.ubuntu\.com/ubuntu-ports|[a-z.]*archive\.ubuntu\.com/ubuntu|security\.ubuntu\.com/ubuntu)/?#http://old-releases.ubuntu.com/ubuntu/#g' \
+    /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
+fi
+grep -h "^URIs" /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null | sort -u
+
+step "更新 apt 並安裝基本工具"
+sudo apt-get update -q
+sudo apt-get install -y -q apt-transport-https ca-certificates curl gpg git net-tools
+
+step "禁用 swap（kubelet 要求）"
+sudo swapoff -a
+sudo sed -i -E '/\sswap\s/ s/^#?/#/' /etc/fstab
+free -h | grep -i swap
+
+step "載入 overlay、br_netfilter 核心模組"
+cat <<EOT | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOT
+sudo modprobe overlay
+sudo modprobe br_netfilter
+lsmod | grep -E "overlay|br_netfilter"
+
+step "設定 IPv4 轉發並讓 iptables 看見橋接流量"
+cat <<EOT | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOT
+sudo sysctl --system >/dev/null
+sysctl net.bridge.bridge-nf-call-iptables net.ipv4.ip_forward
+echo -e "\e[1;32m[完成] s01-prep\e[0m"
